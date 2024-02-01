@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Oy_yO.Repositories.ChatHub;
+using Oy_yO.Models;
+using Oy_yO.Repositories;
+using Oy_yO.Service;
 
 namespace Oy_yO.Controllers;
 
@@ -8,23 +10,29 @@ namespace Oy_yO.Controllers;
 [ApiController]
 public class MessageController: ControllerBase
 {
-    private IHubContext<MessageHub, IMessageHubClient> _messageHub;
-    public MessageController(IHubContext<MessageHub, IMessageHubClient> messageHub)
+    private readonly IChatRepository _chatRepository;
+    private readonly IHubContext<ChatHub> _hubContext;
+    
+    public MessageController(IChatRepository chatRepository, IHubContext<ChatHub> hubContext)
     {
-        _messageHub = messageHub;
+        _chatRepository = chatRepository;
+        _hubContext = hubContext;
+    }
+
+    [HttpGet("conversation/{senderId}/{receiverId}")]
+    public async Task<IActionResult> GetConversation(int senderId, int receiverId)
+    {
+        var messages = await _chatRepository.GetConversation(senderId, receiverId);
+        return Ok(messages);
     }
 
     [HttpPost]
-    [Route("notify")]
-    public string Get()
+    public async Task<IActionResult> CreateMessage(Message message)
     {
-        List<string> notifications = new List<string>
-        {
-            "Connected successfully",
-            "Enjoy your journey"
-        };
+        await _chatRepository.CreateMessage(message);
 
-        _messageHub.Clients.All.SendMessageToClient(notifications);
-        return "client notified";
+        //_HubContext for realtime communication
+        await _hubContext.Clients.User(message.ReceiverId.ToString()).SendAsync("ReceiveMessage", message);
+        return Ok();
     }
 }
