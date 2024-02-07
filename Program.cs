@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Oy_yO.Data;
 using Oy_yO.Repositories;
 using Oy_yO.Service;
@@ -10,7 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+    { 
+        options.SwaggerDoc("v1", new OpenApiInfo { Title = "Oy-yO v1", Version = "v1" });
+        options.AddSignalRSwaggerGen();
+    });
 
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
 
