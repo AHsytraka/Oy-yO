@@ -22,7 +22,7 @@ builder.Services.AddScoped<IChatRepository, ChatRepository>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     {
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-        options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+        options.UseSqlite(connectionString);
     }
 );
 
